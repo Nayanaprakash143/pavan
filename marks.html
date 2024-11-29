@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            text-align: center;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        button {
+            width: 48%;
+            padding: 10px;
+            border: none;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            background: #007BFF;
+            color: white;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Quiz Container -->
+    <div class="container quiz-container" id="quizContainer">
+        <h2>Quiz</h2>
+        <div id="quiz"></div>
+        <div id="result" class="hidden">
+            <h3>Your Score: <span id="score"></span></h3>
+            <button id="viewScores" onclick="viewScores()">View Scores</button>
+        </div>
+        <div class="button-group">
+            <button id="submit" onclick="checkAnswer()">Submit</button>
+            <button id="next" onclick="nextQuestion()" class="hidden">Next</button>
+        </div>
+    </div>
+
+    <script>
+        // Get references to elements
+        const quizContainer = document.getElementById('quizContainer');
+        const resultContainer = document.getElementById('result');
+        const scoreDisplay = document.getElementById('score');
+        const nextButton = document.getElementById('next');
+        const submitButton = document.getElementById('submit');
+
+        // Function to save score in localStorage
+        function saveScore(score) {
+            const email = "user@example.com"; // Replace with actual user email if available
+            if (!email) {
+                alert('User not logged in. Cannot save score.');
+                return;
+            }
+
+            const scores = JSON.parse(localStorage.getItem('scores')) || {};
+            if (!scores[email]) {
+                scores[email] = [];
+            }
+
+            const timestamp = new Date().toLocaleString();
+            scores[email].push({ score: `${score}/${quizData.length}`, date: timestamp });
+            localStorage.setItem('scores', JSON.stringify(scores));
+        }
+
+        // Function to view scores
+        function viewScores() {
+            const email = "user@example.com"; // Replace with actual user email if available
+            const scores = JSON.parse(localStorage.getItem('scores')) || {};
+            const userScores = scores[email] || [];
+
+            if (userScores.length === 0) {
+                alert('No scores available for this user.');
+            } else {
+                let scoreList = `Quiz Scores for ${email}:\n`;
+                userScores.forEach((entry, index) => {
+                    scoreList += `${index + 1}. Score: ${entry.score}, Date: ${entry.date}\n`;
+                });
+                alert(scoreList);
+            }
+        }
+
+        // Function to show the result and save the score
+        function showResult() {
+            quizContainer.style.display = "none";
+            resultContainer.classList.remove("hidden");
+            scoreDisplay.textContent = `${score}/${quizData.length}`;
+            saveScore(score); // Save score after the quiz ends
+        }
+
+        // Quiz Data
+        const quizData = [
+            {
+                question: "What is the capital of France?",
+                options: ["Paris", "London", "Berlin", "Madrid"],
+                answer: "Paris",
+            },
+            {
+                question: "Which language runs in a web browser?",
+                options: ["Python", "JavaScript", "C++", "Java"],
+                answer: "JavaScript",
+            },
+            {
+                question: "What does HTML stand for?",
+                options: [
+                    "Hypertext Markup Language",
+                    "Hyperloop Machine Language",
+                    "Hyper Markup Language",
+                    "Hightext Machine Language",
+                ],
+                answer: "Hypertext Markup Language",
+            },
+            {
+                question: "Who developed the theory of relativity?",
+                options: ["Newton", "Einstein", "Tesla", "Edison"],
+                answer: "Einstein",
+            },
+        ];
+
+        let currentQuiz = 0;
+        let score = 0;
+
+        // Load a question
+        function loadQuiz() {
+            const currentData = quizData[currentQuiz];
+            quizContainer.innerHTML = `
+                <div class="question">${currentData.question}</div>
+                <ul class="options">
+                    ${currentData.options
+                        .map(
+                            (option, index) =>
+                                `<li>
+                                    <label>
+                                        <input type="radio" name="option" value="${option}"> ${option}
+                                    </label>
+                                </li>`
+                        )
+                        .join("")}
+                </ul>
+            `;
+            nextButton.classList.add("hidden"); // Hide "Next" button initially
+            submitButton.classList.remove("hidden"); // Show "Submit" button
+        }
+
+        // Check the answer
+        function checkAnswer() {
+            const currentData = quizData[currentQuiz];
+            const selectedOption = document.querySelector('input[name="option"]:checked');
+
+            if (!selectedOption) {
+                alert('Please select an option');
+                return;
+            }
+
+            if (selectedOption.value === currentData.answer) {
+                score++;
+            }
+
+            submitButton.classList.add("hidden"); // Hide submit button
+            nextButton.classList.remove("hidden"); // Show next button
+        }
+
+        // Go to the next question
+        function nextQuestion() {
+            currentQuiz++;
+
+            if (currentQuiz < quizData.length) {
+                loadQuiz();
+            } else {
+                showResult();
+            }
+        }
+
+        // Initialize quiz
+        loadQuiz();
+    </script>
+</body>
+
+</html>
